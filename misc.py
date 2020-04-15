@@ -19,3 +19,8 @@ def get_variable_from_local(variable_name_with_path, **kwargs):
     with open(f'{variable_name_with_path}.pkl', 'wb') as f:
         pickle.dump({"variable_value": variable_value, "created_date": datetime.now()}, f)
     return variable_value
+
+
+def date_range(start_date, end_date):
+    for n in range(int ((end_date - start_date).days)):
+        yield start_date + timedelta(n)
