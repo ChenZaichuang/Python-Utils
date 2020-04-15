@@ -16,7 +16,7 @@ class ThreadPool:
     def __init__(self, **kwargs):
         assert 'total_thread_number' in kwargs or ('thread_pool' in kwargs and 'max_thread' in kwargs)
         self.thread_pool = Pool(kwargs['total_thread_number']) if 'total_thread_number' in kwargs else kwargs['thread_pool']
-        self.max_thread = kwargs['max_thread'] if 'max_thread' in kwargs else kwargs['processes']
+        self.max_thread = kwargs['max_thread'] if 'max_thread' in kwargs else kwargs['total_thread_number']
         self.semaphore = BoundedSemaphore(self.max_thread)
         self.exit_for_any_exception = kwargs.get("exit_for_any_exception", False)
         self._thread_res_queue = Queue()
