@@ -51,7 +51,7 @@ class CustomLogger:
             self.file_level = file_logger_config.get('level', logging.INFO)
             self.file_logger = logging.getLogger(f"file_logger_{CustomLogger.file_logger_index}")
             self.file_logger.setLevel(self.file_level)
-            file_handler = logging.FileHandler(file_logger_config['filename'], mode=file_logger_config['mode'])
+            file_handler = logging.FileHandler(file_logger_config['filename'], mode=file_logger_config.get('mode', 'w'))
             file_handler.setFormatter(Logger.log_formatter)
             self.file_logger.addHandler(file_handler)
             CustomLogger.file_logger_index += 1
