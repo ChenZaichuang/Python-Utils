@@ -4,4 +4,6 @@ git rm -r --cached ${submodule_name}
 rm -rf .git/modules/${submodule_name}
 rm -r ${submodule_name}
 git submodule add ${git_repo} ${submodule_name}
-./${submodule_name}/init.sh
+if [[ -f ./${submodule_name}/init.sh ]];then
+  ./${submodule_name}/init.sh
+fi
