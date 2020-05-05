@@ -24,6 +24,7 @@ class ThreadPool:
         self.valid_for_new_thread = True
         self.thread_group = Group()
         self.log_exception = kwargs.get('log_exception', True)
+        self.thread_list = []
 
     def start_thread(self, thread_number, func, args=None, kwds=None):
         if args is None:
@@ -55,6 +56,7 @@ class ThreadPool:
         thread = self.thread_pool.apply_async(self.start_thread, args=(self.thread_number, func, args, kwds),
                                               callback=callback)
         self.thread_group.add(thread)
+        self.thread_list.append(thread)
         self.thread_number += 1
         return thread
 
@@ -88,6 +90,13 @@ class ThreadPool:
             else:
                 raise Exception(f"op=execute thread {thread_number} | status=ERROR | desc={res}")
 
+    def get_one_result(self, raise_exception=False, with_status=False):
+        thread_number, success, res = self._thread_res_queue.get()
+        self.thread_number -= 1
+        if not success and raise_exception:
+            raise Exception(f"op=execute thread {thread_number} | status=ERROR | desc={res}")
+        return (success, res) if with_status else res
+
     def wait_all_threads(self, raise_exception=False):
         while self.thread_number:
             thread_number, success, res = self._thread_res_queue.get()
@@ -97,3 +106,6 @@ class ThreadPool:
 
     def stop_all(self):
         self.thread_group.kill()
+
+    def stop_nth_thread(self, n):
+        self.thread_list[n].kill()
