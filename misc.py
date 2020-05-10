@@ -3,11 +3,12 @@ import pickle
 from datetime import timedelta, datetime
 
 
-def get_variable_from_local(variable_name_with_path, default_value=None, function_value=None, args=None, kwds=None, keep_time=None, local_expire_datetime=None):
+def get_variable_from_local(variable_name_with_path, default_value=None, function_value=None, args=None, kwds=None, keep_time=None, local_expire_datetime=None, force_refresh=False):
     assert default_value or function_value
     if "pkl_file_path" in os.environ:
         variable_name_with_path = f'{os.environ["pkl_file_path"]}/{variable_name_with_path}'
-    if os.path.exists(f'{variable_name_with_path}.pkl'):
+
+    if (not force_refresh) and os.path.exists(f'{variable_name_with_path}.pkl'):
         with open(f'{variable_name_with_path}.pkl', 'rb') as f:
             info_map = pickle.load(f)
         if keep_time or local_expire_datetime:
