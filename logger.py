@@ -11,10 +11,12 @@ class Logger:
     stderr_stream_handler.setFormatter(log_formatter)
 
     stdout_logger = logging.getLogger("stdout_logger")
+    stdout_logger.propagate = False
     stdout_logger.setLevel(logging.INFO)
     stdout_logger.addHandler(stdout_stream_handler)
 
     stderr_logger = logging.getLogger("stderr_logger")
+    stderr_logger.propagate = False
     stderr_logger.setLevel(logging.ERROR)
     stderr_logger.addHandler(stderr_stream_handler)
 
@@ -31,25 +33,35 @@ class CustomLogger:
     console_logger_index = 0
     file_logger_index = 0
 
-    def __init__(self, console_logger_config=None, file_logger_config=None):
+    def __init__(self, console_logger_config=None, file_logger_config=None, including_requests_logger=False):
         self.console_level = None
         self.file_level = None
 
         if console_logger_config:
             self.console_level = console_logger_config.get('level', logging.INFO)
-            self.stdout_logger = logging.getLogger(f"stdout_logger_{CustomLogger.console_logger_index}")
-            self.stdout_logger.setLevel(self.console_level)
-            self.stdout_logger.addHandler(Logger.stdout_stream_handler)
+            if including_requests_logger:
+                self.stdout_logger = logging.getLogger("urllib3")
+                self.stdout_logger.setLevel(self.console_level)
+                self.stdout_logger.addHandler(Logger.stdout_stream_handler)
 
-            self.stderr_logger = logging.getLogger(f"stderr_logger_{CustomLogger.console_logger_index}")
-            self.stderr_logger.setLevel(logging.ERROR)
-            self.stderr_logger.addHandler(Logger.stderr_stream_handler)
+                self.stderr_logger = self.stdout_logger
+            else:
+                self.stdout_logger = logging.getLogger(f"stdout_logger_{CustomLogger.console_logger_index}")
+                self.stdout_logger.propagate = False
+                self.stdout_logger.setLevel(self.console_level)
+                self.stdout_logger.addHandler(Logger.stdout_stream_handler)
 
-            CustomLogger.console_logger_index += 1
+                self.stderr_logger = logging.getLogger(f"stderr_logger_{CustomLogger.console_logger_index}")
+                self.stderr_logger.propagate = False
+                self.stderr_logger.setLevel(logging.ERROR)
+                self.stderr_logger.addHandler(Logger.stderr_stream_handler)
+
+                CustomLogger.console_logger_index += 1
 
         if file_logger_config:
             self.file_level = file_logger_config.get('level', logging.INFO)
             self.file_logger = logging.getLogger(f"file_logger_{CustomLogger.file_logger_index}")
+            self.file_logger.propagate = False
             self.file_logger.setLevel(self.file_level)
             file_handler = logging.FileHandler(file_logger_config['filename'], mode=file_logger_config.get('mode', 'w'))
             file_handler.setFormatter(Logger.log_formatter)
@@ -75,8 +87,7 @@ class CustomLogger:
             self.file_logger.error(msg)
 
 
-if __name__ == '_main__':
-
+if __name__ == '__main__':
     Logger.info('info')
     Logger.error('error')
 
@@ -84,3 +95,11 @@ if __name__ == '_main__':
     logger.debug('debug 1')
     logger.info('info 1')
     logger.error('error 1')
+
+    logger = CustomLogger(console_logger_config={'level': logging.DEBUG}, including_requests_logger=True)
+    try:
+        import requests
+        requests.get('http://www.baidu.com')
+    except:
+        pass
+    logger.info('info 1')
