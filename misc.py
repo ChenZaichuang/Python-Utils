@@ -31,3 +31,9 @@ def get_variable_from_local(variable_name_with_path, default_value=None, functio
 def date_range(start_date, end_date, including_end_date=False):
     for n in range(int((end_date - start_date).days) + (1 if including_end_date else 0)):
         yield start_date + timedelta(n)
+
+def list_to_string(a_list):
+    return "('" + "','".join(set(a_list)) + "')"
+
+def set_to_string(a_set):
+    return "('" + "','".join(a_set) + "')"
