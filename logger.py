@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from logging.handlers import TimedRotatingFileHandler
 
 
 class CustomLogger:
@@ -13,7 +14,10 @@ class CustomLogger:
     console_logger_index = 0
     file_logger_index = 0
 
-    def __init__(self, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False):
+    def __init__(self, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False, time_rotating=None):
+
+        if time_rotating is not None:
+            assert type(time_rotating) is dict and "when" in time_rotating and "interval" in time_rotating
 
         level = int(os.environ.get('logging_level', level))
         to_console = str(os.environ.get('logging_to_console', to_console))
@@ -37,7 +41,10 @@ class CustomLogger:
             self.stderr_logger.addHandler(self.stderr_stream_handler)
 
         if to_file_name:
-            file_handler = logging.FileHandler(to_file_name, mode='w')
+            if time_rotating is None:
+                file_handler = logging.FileHandler(to_file_name, mode='w')
+            else:
+                file_handler = TimedRotatingFileHandler(filename=to_file_name, when=time_rotating['when'], interval=time_rotating['interval'])
             file_handler.setFormatter(self.log_formatter)
             self.stdout_logger.addHandler(file_handler)
             self.stderr_logger.addHandler(file_handler)
