@@ -26,7 +26,7 @@ class CustomLogger:
         with_requests_logger = str(os.environ.get('logging_with_requests_logger', with_requests_logger))
 
         if 'logging_time_rotating' in os.environ:
-            time_rotating = json.loads(os.environ['logging_to_file_name'])
+            time_rotating = json.loads(os.environ['logging_time_rotating'])
 
         if with_requests_logger:
             self.stdout_logger = logging.getLogger("urllib3")
