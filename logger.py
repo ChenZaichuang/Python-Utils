@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -23,6 +24,9 @@ class CustomLogger:
         to_console = str(os.environ.get('logging_to_console', to_console))
         to_file_name = os.environ.get('logging_to_file_name', to_file_name)
         with_requests_logger = str(os.environ.get('logging_with_requests_logger', with_requests_logger))
+
+        if 'logging_time_rotating' in os.environ:
+            time_rotating = json.loads(os.environ['logging_to_file_name'])
 
         if with_requests_logger:
             self.stdout_logger = logging.getLogger("urllib3")
@@ -50,11 +54,14 @@ class CustomLogger:
             self.stderr_logger.addHandler(file_handler)
 
     @classmethod
-    def set_global_config(cls, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False):
+    def set_global_config(cls, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False, time_rotating=None):
         os.environ['logging_level'] = str(level)
         os.environ['logging_to_console'] = str(to_console)
         os.environ['logging_to_file_name'] = to_file_name
         os.environ['logging_with_requests_logger'] = str(with_requests_logger)
+        if time_rotating is not None:
+            assert type(time_rotating) is dict and "when" in time_rotating and "interval" in time_rotating
+            os.environ['logging_time_rotating'] = json.dumps(time_rotating)
 
     def debug(self, msg):
         self.stdout_logger.debug(msg)
