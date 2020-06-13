@@ -1,5 +1,3 @@
-from gevent import monkey
-monkey.patch_all(thread=False)
 from gevent._semaphore import BoundedSemaphore
 from gevent.libev.corecext import traceback
 from gevent.pool import Group
