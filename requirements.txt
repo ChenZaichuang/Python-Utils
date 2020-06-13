@@ -1,1 +1,1 @@
-gevent
+gevent==20.6.1
