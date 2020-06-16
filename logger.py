@@ -4,7 +4,7 @@ import sys
 
 
 class CustomLogger:
-    use_global_config = False
+    global_config_set = False
     global_stdout_logger = None
     global_stderr_logger = None
 
@@ -17,9 +17,9 @@ class CustomLogger:
     console_logger_index = 0
     file_logger_index = 0
 
-    def __init__(self, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False, time_rotating=None):
+    def __init__(self, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False, time_rotating=None, use_global_config=True):
 
-        if CustomLogger.use_global_config:
+        if use_global_config and CustomLogger.global_config_set:
             self.stdout_logger = CustomLogger.global_stdout_logger
             self.stderr_logger = CustomLogger.global_stderr_logger
         else:
@@ -56,7 +56,8 @@ class CustomLogger:
         logger = CustomLogger(level=level, to_console=to_console, to_file_name=to_file_name, with_requests_logger=with_requests_logger, time_rotating=time_rotating)
         CustomLogger.global_stdout_logger = logger.stdout_logger
         CustomLogger.global_stderr_logger = logger.stderr_logger
-        CustomLogger.use_global_config = True
+        CustomLogger.global_config_set = True
+        Logger.logger = logger
 
     def debug(self, msg):
         self.stdout_logger.debug(msg)
@@ -66,6 +67,22 @@ class CustomLogger:
 
     def error(self, msg):
         self.stderr_logger.error(msg)
+
+
+class Logger:
+    logger = CustomLogger()
+
+    @classmethod
+    def debug(cls, msg):
+        Logger.logger.debug(msg)
+
+    @classmethod
+    def info(cls, msg):
+        Logger.logger.info(msg)
+
+    @classmethod
+    def error(cls, msg):
+        Logger.logger.error(msg)
 
 
 if __name__ == '__main__':
@@ -81,3 +98,7 @@ if __name__ == '__main__':
     logger.debug('debug')
     logger.info('info')
     logger.error('error')
+
+    Logger.debug('debug1')
+    Logger.info('info1')
+    Logger.error('error1')
