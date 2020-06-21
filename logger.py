@@ -2,6 +2,8 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import sys
 
+from prettytable import PrettyTable, ALL
+
 
 class CustomLogger:
     global_config_set = False
@@ -83,6 +85,16 @@ class Logger:
     @classmethod
     def error(cls, msg):
         Logger.logger.error(msg)
+
+    @classmethod
+    def rows_to_table_string(cls, rows):
+        if len(rows) == 0:
+            return ''
+        table = PrettyTable()
+        table.field_names = rows[0]
+        for row in rows[1:]:
+            table.add_row(row)
+        return table.get_string(hrules=ALL)
 
 
 if __name__ == '__main__':
