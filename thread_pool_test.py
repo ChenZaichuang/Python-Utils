@@ -2,7 +2,7 @@ import datetime
 
 import unittest2
 
-from python_utils.thread_pool import ThreadPool
+from thread_pool import ThreadPool
 import gevent
 
 

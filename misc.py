@@ -42,30 +42,3 @@ def list_to_string(a_list):
 
 def set_to_string(a_set):
     return "('" + "','".join(a_set) + "')"
-
-def timeout_retry(original_function=None, timeout=30, retries=5, retry_interval=3):
-
-    def _decorate(function):
-
-        @functools.wraps(function)
-        def wrapped_function(*args, **kwargs):
-            for _ in range(retries):
-                try:
-                    with Timeout(timeout):
-                        res = original_function(*args, **kwargs)
-                        if res is not None:
-                            return res
-                except TimeoutException:
-                    sleep(retry_interval)
-                except Exception:
-                    err_msg = traceback.format_exc()
-                    print(err_msg)
-                    raise RuntimeError(f"Unknow Exception: {err_msg}")
-            raise RuntimeError(f"Query Get None after {retries} times")
-
-        return wrapped_function
-
-    if original_function:
-        return _decorate(original_function)
-
-    return _decorate
