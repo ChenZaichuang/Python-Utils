@@ -53,14 +53,6 @@ class CustomLogger:
                 self.stdout_logger.addHandler(file_handler)
                 self.stderr_logger.addHandler(file_handler)
 
-    @classmethod
-    def set_global_config(cls, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False, time_rotating=None):
-        logger = CustomLogger(level=level, to_console=to_console, to_file_name=to_file_name, with_requests_logger=with_requests_logger, time_rotating=time_rotating)
-        CustomLogger.global_stdout_logger = logger.stdout_logger
-        CustomLogger.global_stderr_logger = logger.stderr_logger
-        CustomLogger.global_config_set = True
-        Logger.logger = logger
-
     def debug(self, msg):
         self.stdout_logger.debug(msg)
 
@@ -96,10 +88,18 @@ class Logger:
             table.add_row(row)
         return table.get_string(hrules=ALL)
 
+    @classmethod
+    def set_global_config(cls, level=logging.DEBUG, to_console=True, to_file_name='', with_requests_logger=False, time_rotating=None):
+        logger = CustomLogger(level=level, to_console=to_console, to_file_name=to_file_name, with_requests_logger=with_requests_logger, time_rotating=time_rotating)
+        CustomLogger.global_stdout_logger = logger.stdout_logger
+        CustomLogger.global_stderr_logger = logger.stderr_logger
+        CustomLogger.global_config_set = True
+        cls.logger = logger
+
 
 if __name__ == '__main__':
 
-    CustomLogger.set_global_config(level=logging.INFO, to_file_name='test.log', with_requests_logger=True)
+    Logger.set_global_config(level=logging.INFO, to_file_name='test.log', with_requests_logger=True)
 
     logger = CustomLogger(level=logging.DEBUG, to_file_name='test.log', with_requests_logger=True)
     try:
