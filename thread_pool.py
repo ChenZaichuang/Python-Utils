@@ -1,5 +1,6 @@
 import logging
 import sys
+import traceback
 
 import gevent
 from gevent._semaphore import BoundedSemaphore
@@ -37,8 +38,9 @@ class ThreadPool:
             res = func(*args, **kwargs)
         except Exception as e:
             res = e
+            err_msg = traceback.format_exc()
             if self.log_exception:
-                logging.error(f"Thread {thread_number} failed when execute {func.__name__}, error msg: \n{res}")
+                logging.error(f"Thread {thread_number} failed when execute {func.__name__}, error msg: \n{err_msg}")
             if self.exit_for_any_exception:
                 sys.exit()
             success = False
