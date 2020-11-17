@@ -7,7 +7,7 @@ from gevent._semaphore import BoundedSemaphore
 from gevent.queue import Queue
 
 
-class ThreadPool:
+class GeventThreadPool:
 
     __slots__ = ('max_thread', 'main_semaphore', 'sub_semaphore', 'exit_for_any_exception',
                  '_thread_res_queue', 'valid_for_new_thread', 'log_exception', 'thread_list',
@@ -63,10 +63,10 @@ class ThreadPool:
         return thread
 
     def new_shared_pool(self, exit_for_any_exception=False, max_thread=0):
-        return ThreadPool(semaphore=self.main_semaphore, exit_for_any_exception=exit_for_any_exception,
+        return GeventThreadPool(semaphore=self.main_semaphore, exit_for_any_exception=exit_for_any_exception,
                           max_thread=max_thread if max_thread > 0 else self.max_thread)
 
-    def get_results_order_by_index(self, raise_exception=False, with_status=False):
+    def get_results_order_by_index(self, raise_exception=False, with_status=False, stop_all_for_exception=False):
         self.valid_for_new_thread = False
         threads_result = [''] * len(self.thread_list) if with_status else [('', '')] * len(self.thread_list)
         for _ in range(len(self.thread_list) - len(self.killed_threads)):
@@ -74,12 +74,15 @@ class ThreadPool:
             if success or not raise_exception:
                 threads_result[thread_number] = (success, res) if with_status else res
             else:
+                if stop_all_for_exception:
+                    logging.info('stop all')
+                    self.stop_all()
                 self.refresh()
                 raise res
         self.refresh()
         return threads_result
 
-    def get_results_order_by_time(self, raise_exception=False, with_status=False):
+    def get_results_order_by_time(self, raise_exception=False, with_status=False, stop_all_for_exception=False):
         self.valid_for_new_thread = False
         for index in range(len(self.thread_list) - len(self.killed_threads)):
             thread_number, success, res = self._thread_res_queue.get()
@@ -88,13 +91,17 @@ class ThreadPool:
                     self.refresh()
                 yield (success, res) if with_status else res
             else:
+                if stop_all_for_exception:
+                    self.stop_all()
                 self.refresh()
                 raise res
 
-    def get_one_result(self, raise_exception=False, with_status=False):
+    def get_one_result(self, raise_exception=False, with_status=False, stop_all_for_exception=False):
         thread_number, success, res = self._thread_res_queue.get()
         self.killed_threads.add(thread_number)
         if not success and raise_exception:
+            if stop_all_for_exception:
+                self.stop_all()
             raise res
         return (success, res) if with_status else res
 
@@ -125,3 +132,10 @@ class ThreadPool:
         self.valid_for_new_thread = True
         self.completed_threads.clear()
         self.killed_threads.clear()
+        self._thread_res_queue = Queue()
+
+    @classmethod
+    def new_thread(cls, target, args=None, kwargs=None):
+        args = args if args is not None else tuple()
+        kwargs = kwargs if kwargs is not None else dict()
+        return gevent.spawn(target, *args, **kwargs)
